@@ -27,7 +27,8 @@ create table public.reports (
   status       text not null default 'submitted' check (status in
                  ('submitted', 'community_confirmed', 'acknowledged', 'in_progress', 'resolved')),
   user_id      uuid not null default auth.uid() references public.profiles (id) on delete cascade,
-  created_at   timestamptz not null default now()
+  created_at   timestamptz not null default now(),
+  is_demo      boolean not null default false   -- labelled demo data, set only by the seed script
 );
 create index reports_category_idx on public.reports (category);
 create index reports_status_idx   on public.reports (status);
@@ -50,7 +51,8 @@ create table public.activities (
   location     text,
   event_date   timestamptz,
   creator_id   uuid not null default auth.uid() references public.profiles (id) on delete cascade,
-  created_at   timestamptz not null default now()
+  created_at   timestamptz not null default now(),
+  is_demo      boolean not null default false
 );
 
 create table public.activity_members (
@@ -226,7 +228,7 @@ grant  update (name) on public.profiles to authenticated;
 -- reports: public read; citizens create their own; edit only own content fields.
 create policy "reports readable" on public.reports for select using (true);
 create policy "reports insert own" on public.reports for insert to authenticated
-  with check (user_id = auth.uid() and status = 'submitted');
+  with check (user_id = auth.uid() and status = 'submitted' and not is_demo);
 create policy "reports update own" on public.reports for update to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy "reports delete own unreviewed" on public.reports for delete to authenticated
@@ -252,7 +254,7 @@ grant  update (vote) on public.verifications to authenticated;
 -- activities: public read; creators (or admin) manage their own.
 create policy "activities readable" on public.activities for select using (true);
 create policy "activities insert own" on public.activities for insert to authenticated
-  with check (creator_id = auth.uid());
+  with check (creator_id = auth.uid() and not is_demo);
 create policy "activities update own" on public.activities for update to authenticated
   using (creator_id = auth.uid() or public.is_admin())
   with check (creator_id = auth.uid() or public.is_admin());

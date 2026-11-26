@@ -26,7 +26,7 @@
   const STATUS_LABEL = Object.fromEntries(STATUSES);
   const RADIUS = cfg.RADIUS_M || 150, MIN_CLUSTER = cfg.MIN_CLUSTER || 3;
 
-  let user = null, profile = null, lastUid = null, map = null;
+  let user = null, profile = null, lastUid = null, map = null, charts = [];
 
   /* ---------- helpers ---------- */
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -35,6 +35,8 @@
   const badge = (s) => '<span class="badge s-' + esc(s) + '">' + esc(STATUS_LABEL[s] || s) + "</span>";
   const catDot = (c) => '<span class="dot" style="background:' + (CATS[c] || CATS.other).color + '"></span>';
   const catLabel = (c) => (CATS[c] || CATS.other).label;
+  const demoTag = (r) => (r && r.is_demo ? ' <span class="badge demo">Demo data</span>' : "");
+  const fmtDateTime = (iso) => new Date(iso).toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
   let toastTimer;
   function toast(msg) {
     const t = document.getElementById("toast");
@@ -98,7 +100,7 @@
   function renderNav() {
     const h = location.hash || "#/map";
     const link = (href, text, cls) => '<a href="' + href + '" class="' + (cls || "") + (h.indexOf(href) === 0 ? " active" : "") + '">' + text + "</a>";
-    let html = link("#/map", "Explore map") + link("#/report", "Report an issue", "cta");
+    let html = link("#/map", "Explore map") + link("#/pulse", "Pulse") + link("#/circles", "Action Circles") + link("#/report", "Report an issue", "cta");
     if (user) html += link("#/mine", "My reports");
     if (profile && profile.role === "admin") html += link("#/admin", "Admin");
     html += user ? '<button id="logout" type="button">Log out</button>' : link("#/login", "Log in");
@@ -113,7 +115,10 @@
   });
 
   /* ---------- router ---------- */
-  function cleanup() { if (map) { map.remove(); map = null; } }
+  function cleanup() {
+    if (map) { map.remove(); map = null; }
+    charts.forEach((c) => { try { c.destroy(); } catch (e) {} }); charts = [];
+  }
   async function route() {
     cleanup();
     renderNav();
@@ -125,6 +130,8 @@
       else if (name === "report") await viewReport();
       else if (name === "issue" && arg) await viewIssue(arg);
       else if (name === "mine") await viewMine();
+      else if (name === "pulse") await viewPulse();
+      else if (name === "circles") await viewCircles();
       else if (name === "admin") await viewAdmin();
       else if (name === "login") viewLogin();
       else await viewMap();
@@ -209,7 +216,7 @@
         L.circleMarker([r.latitude, r.longitude], {
           radius: 9, color: "#fff", weight: 2, fillColor: color, fillOpacity: r.status === "resolved" ? 0.35 : 0.9
         }).addTo(markers).bindPopup(
-          '<div class="pop"><h3>' + esc(r.title) + "</h3>" + catDot(r.category) + esc(catLabel(r.category)) + " · " + badge(r.status) +
+          '<div class="pop"><h3>' + esc(r.title) + "</h3>" + demoTag(r) + "<br>" + catDot(r.category) + esc(catLabel(r.category)) + " · " + badge(r.status) +
           '<br><span class="small">' + (Number(r.confirmations) || 0) + ' <span class="heart">&hearts;</span> community confirmations</span><br><a href="#/issue/' + r.id + '">View details</a></div>');
       });
       const clusters = computeClusters(shown, radius);
@@ -360,7 +367,7 @@
     view.innerHTML =
       '<p><a href="#/map">&larr; Back to the map</a></p><div class="issue"><div class="stack"><div class="card stack">' +
       (r.image_url ? '<img class="photo" src="' + esc(r.image_url) + '" alt="Photo of the reported issue">' : "") +
-      "<div><h1>" + esc(r.title) + '</h1><div class="row">' + badge(r.status) + "<span>" + catDot(r.category) + esc(catLabel(r.category)) + "</span></div></div>" +
+      "<div><h1>" + esc(r.title) + '</h1><div class="row">' + badge(r.status) + demoTag(r) + "<span>" + catDot(r.category) + esc(catLabel(r.category)) + "</span></div></div>" +
       (r.description ? "<p>" + esc(r.description) + "</p>" : "") +
       '<p class="small muted">Reported ' + fmtDate(r.created_at) + " by " + esc((aq.data && aq.data.name) || "a resident") +
       (r.area ? " · " + esc(r.area) : "") + " · Report ID " + esc(String(r.id).slice(0, 8)) + "</p>" +
@@ -403,13 +410,162 @@
     };
   }
 
+  /* ---------- Neighbourhood Pulse ---------- */
+  function weekBuckets(reports, n) {
+    const out = new Array(n).fill(0), now = Date.now();
+    reports.forEach((r) => {
+      const w = Math.floor((now - new Date(r.created_at).getTime()) / (7 * 864e5));
+      if (w >= 0 && w < n) out[n - 1 - w]++;
+    });
+    return out;
+  }
+  function pointsFor(reports, votes, members) {
+    const pts = {};
+    const add = (id, n) => { if (id) pts[id] = (pts[id] || 0) + n; };
+    reports.forEach((r) => add(r.user_id, 10));          // 10 points per report
+    votes.forEach((v) => add(v.user_id, 2));             // 2 points per confirmation given
+    members.forEach((m) => add(m.user_id, 5));           // 5 points per Action Circle joined
+    return Object.keys(pts).map((id) => ({ id, points: pts[id] })).sort((a, b) => b.points - a.points).slice(0, 5);
+  }
+  async function viewPulse() {
+    view.innerHTML = '<h1>Neighbourhood Pulse</h1><p class="muted" id="pulseSub">Loading…</p><div id="pulseBody"></div>';
+    const [rq, vq, mq] = await Promise.all([
+      db.from("reports_with_counts").select("*").limit(2000),
+      db.from("verifications").select("user_id").limit(5000),
+      db.from("activity_members").select("user_id").limit(5000)
+    ]);
+    if (rq.error) return showError(rq.error);
+    const all = rq.data || [];
+    const areas = Array.from(new Set(all.map((r) => r.area).filter(Boolean))).sort();
+    const demoCount = all.filter((r) => r.is_demo).length;
+    document.getElementById("pulseSub").innerHTML = "What is being reported, what is still open, and where problems keep coming back." +
+      (demoCount ? ' <span class="badge demo">Demo data</span> ' + demoCount + " of " + all.length + " reports are labelled demo data, not real city statistics." : "");
+
+    const leaders = pointsFor(all, vq.data || [], mq.data || []);
+    const names = {};
+    if (leaders.length) {
+      const pq = await db.from("profiles").select("id,name").in("id", leaders.map((l) => l.id));
+      (pq.data || []).forEach((p) => { names[p.id] = p.name; });
+    }
+
+    function render(area) {
+      charts.forEach((c) => { try { c.destroy(); } catch (e) {} }); charts = [];
+      const rs = area ? all.filter((r) => r.area === area) : all;
+      const open = rs.filter((r) => r.status !== "resolved"), resolved = rs.length - open.length;
+      const clusters = computeClusters(rs, RADIUS);
+      const confirms = rs.reduce((s, r) => s + (Number(r.confirmations) || 0), 0);
+      const byCat = Object.keys(CATS).map((k) => ({ k, n: rs.filter((r) => r.category === k).length })).filter((x) => x.n).sort((a, b) => b.n - a.n);
+      const byStatus = STATUSES.map((s) => [s[0], rs.filter((r) => r.status === s[0]).length]);
+      const weeks = weekBuckets(rs, 8);
+      const weekLabels = weeks.map((_, i) => (i === weeks.length - 1 ? "This week" : (weeks.length - 1 - i) + "w ago"));
+
+      document.getElementById("pulseBody").innerHTML =
+        '<div class="toolbar"><label class="range">Area <select id="areaSel" style="width:auto"><option value="">All areas</option>' +
+        areas.map((a) => '<option value="' + esc(a) + '"' + (a === area ? " selected" : "") + ">" + esc(a) + "</option>").join("") + "</select></label></div>" +
+        '<div class="tiles">' +
+        [["Total reports", rs.length], ["Still open", open.length], ["Resolved", resolved], ["Recurring hotspots", clusters.length], ["Community confirmations", confirms]]
+          .map((t) => '<div class="tile"><b>' + t[1] + "</b><span>" + t[0] + "</span></div>").join("") + "</div>" +
+        '<div class="pulse-grid"><div class="card"><h2>Reports by category</h2><div class="chartbox"><canvas id="catChart" aria-label="Reports by category"></canvas></div></div>' +
+        '<div class="card"><h2>Reports per week</h2><div class="chartbox"><canvas id="weekChart" aria-label="Reports per week"></canvas></div></div>' +
+        '<div class="card stack"><h2>Status breakdown</h2><ul class="list">' + byStatus.map((s) => "<li>" + badge(s[0]) + "<b>" + s[1] + "</b></li>").join("") + "</ul></div>" +
+        '<div class="card stack"><h2>Recurring hotspots</h2>' + (clusters.length
+          ? '<ul class="list">' + clusters.map((c) => "<li><span><b>" + catDot(c.category) + esc(catLabel(c.category)) + '</b><br><span class="small">' + esc(clusterText(c)) +
+            '</span></span><a href="#/issue/' + c.anchor.id + '">View</a></li>').join("") + "</ul>"
+          : '<p class="muted small">No clusters of ' + MIN_CLUSTER + "+ same-type reports within " + RADIUS + " m.</p>") + "</div>" +
+        '<div class="card stack" style="grid-column:1/-1"><h2>Active neighbours</h2>' + (leaders.length
+          ? '<ol class="list leaders">' + leaders.map((l, i) => "<li><span><b>" + (i + 1) + ".</b> " + esc(names[l.id] || "A neighbour") + "</span><b>" + l.points + " pts</b></li>").join("") + "</ol>"
+          : '<p class="muted small">No activity yet.</p>') +
+        '<p class="small muted">10 points per report, 2 per confirmation, 5 per Action Circle joined. Covers all areas and includes demo residents while demo data is loaded.</p></div></div>';
+
+      document.getElementById("areaSel").onchange = (e) => render(e.target.value);
+      if (!window.Chart) return;
+      const font = { family: "Inter, system-ui, sans-serif" };
+      charts.push(new Chart(document.getElementById("catChart"), {
+        type: "bar",
+        data: { labels: byCat.map((x) => catLabel(x.k)), datasets: [{ data: byCat.map((x) => x.n), backgroundColor: byCat.map((x) => CATS[x.k].color), borderRadius: 8 }] },
+        options: { indexAxis: "y", maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { precision: 0, font } }, y: { ticks: { font } } } }
+      }));
+      charts.push(new Chart(document.getElementById("weekChart"), {
+        type: "line",
+        data: { labels: weekLabels, datasets: [{ data: weeks, borderColor: "#A84E2C", backgroundColor: "rgba(197,99,60,.15)", fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: "#A84E2C" }] },
+        options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0, font } }, x: { ticks: { font } } } }
+      }));
+    }
+    render("");
+  }
+
+  /* ---------- Action Circles ---------- */
+  async function viewCircles() {
+    const [aq, mq] = await Promise.all([
+      db.from("activities").select("*").order("event_date", { ascending: true }).limit(200),
+      db.from("activity_members").select("activity_id,user_id").limit(5000)
+    ]);
+    if (aq.error) return showError(aq.error);
+    const acts = aq.data || [], members = mq.data || [];
+    const cq = acts.length ? await db.from("profiles").select("id,name").in("id", Array.from(new Set(acts.map((a) => a.creator_id)))) : { data: [] };
+    const cname = {}; (cq.data || []).forEach((p) => { cname[p.id] = p.name; });
+    const cutoff = Date.now() - 864e5;
+    const upcoming = acts.filter((a) => !a.event_date || new Date(a.event_date).getTime() >= cutoff);
+    const past = acts.filter((a) => a.event_date && new Date(a.event_date).getTime() < cutoff).reverse();
+
+    const card = (a) => {
+      const mine = user && members.some((m) => m.activity_id === a.id && m.user_id === user.id);
+      const n = members.filter((m) => m.activity_id === a.id).length;
+      const isPast = a.event_date && new Date(a.event_date).getTime() < cutoff;
+      return '<div class="card stack"><div><h3 style="margin-bottom:4px">' + esc(a.title) + demoTag(a) + "</h3>" +
+        '<p class="small muted" style="margin:0">' + (a.event_date ? esc(fmtDateTime(a.event_date)) : "Date to be announced") + (a.location ? " · " + esc(a.location) : "") + "</p></div>" +
+        (a.description ? "<p>" + esc(a.description) + "</p>" : "") +
+        '<div class="row" style="justify-content:space-between"><span class="small"><b>' + n + "</b> neighbour" + (n === 1 ? "" : "s") + " joined · organised by " + esc(cname[a.creator_id] || "a resident") + "</span>" +
+        (isPast ? "" : user
+          ? '<button type="button" class="btn sm ' + (mine ? "ghost" : "") + '" data-circle="' + a.id + '" data-joined="' + (mine ? "1" : "0") + '">' + (mine ? "Leave" : "Join") + "</button>"
+          : '<a class="btn sm" href="#/login">Log in to join</a>') + "</div></div>";
+    };
+    view.innerHTML = "<h1>Action Circles</h1>" +
+      '<p class="lead muted" style="max-width:62ch">Small voluntary activities that neighbours organise together: clean-ups, tree planting, awareness walks.</p>' +
+      '<p class="note" style="max-width:62ch;margin-bottom:20px"><b>Safety first.</b> Circles are for safe, voluntary activities only. Do not repair roads, wiring or drains yourself. Report hazards on the map instead.</p>' +
+      (user ? '<details class="card" id="newCircle" style="margin-bottom:20px"><summary style="cursor:pointer;font-weight:600">Start an Action Circle</summary>' +
+        '<form id="circleForm" class="stack" style="margin-top:14px"><label>Title<input id="cTitle" required minlength="3" maxlength="120" placeholder="e.g. Saturday park clean-up"></label>' +
+        '<label>What will you do?<textarea id="cDesc" maxlength="1000" placeholder="Keep it safe and simple. Say what to bring."></textarea></label>' +
+        '<label>Where<input id="cLoc" maxlength="160" placeholder="Meeting point"></label>' +
+        '<label>When<input id="cDate" type="datetime-local" required></label><p class="err" id="cErr"></p><button class="btn">Create circle</button></form></details>'
+        : '<p><a href="#/login">Log in</a> to join or start an Action Circle.</p>') +
+      "<h2>Upcoming</h2>" + (upcoming.length ? '<div class="stack">' + upcoming.map(card).join("") + "</div>" : '<p class="muted">Nothing planned yet. Be the first to start one.</p>') +
+      (past.length ? '<h2 style="margin-top:28px">Past</h2><div class="stack">' + past.map(card).join("") + "</div>" : "");
+
+    view.querySelectorAll("[data-circle]").forEach((b) => b.onclick = async () => {
+      const id = b.dataset.circle;
+      const res = b.dataset.joined === "1"
+        ? await db.from("activity_members").delete().eq("activity_id", id).eq("user_id", user.id)
+        : await db.from("activity_members").insert({ activity_id: id });
+      if (res.error) return toast(res.error.message);
+      toast(b.dataset.joined === "1" ? "You left the circle" : "You joined the circle");
+      route();
+    });
+    const form = document.getElementById("circleForm");
+    if (form) form.onsubmit = async (e) => {
+      e.preventDefault();
+      const err = document.getElementById("cErr"); err.textContent = "";
+      const when = new Date(document.getElementById("cDate").value);
+      if (isNaN(when.getTime())) { err.textContent = "Choose a date and time."; return; }
+      const ins = await db.from("activities").insert({
+        title: document.getElementById("cTitle").value.trim(),
+        description: document.getElementById("cDesc").value.trim() || null,
+        location: document.getElementById("cLoc").value.trim() || null,
+        event_date: when.toISOString()
+      }).select("id").single();
+      if (ins.error) { err.textContent = ins.error.message; return; }
+      await db.from("activity_members").insert({ activity_id: ins.data.id });
+      toast("Action Circle created"); route();
+    };
+  }
+
   /* ---------- my reports ---------- */
   async function viewMine() {
     if (!user) { view.innerHTML = '<div class="card narrow"><h1>My reports</h1><p><a href="#/login">Log in</a> to see your reports.</p></div>'; return; }
     const q = await db.from("reports_with_counts").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
     if (q.error) return showError(q.error);
     view.innerHTML = "<h1>My reports</h1>" + (q.data.length
-      ? '<ul class="list">' + q.data.map((r) => '<li><span><a href="#/issue/' + r.id + '">' + esc(r.title) + '</a><br><span class="small muted">' + esc(catLabel(r.category)) + " · " + fmtDate(r.created_at) + " · " + (Number(r.confirmations) || 0) + " confirmations</span></span>" + badge(r.status) + "</li>").join("") + "</ul>"
+      ? '<ul class="list">' + q.data.map((r) => '<li><span><a href="#/issue/' + r.id + '">' + esc(r.title) + '</a>' + demoTag(r) + '<br><span class="small muted">' + esc(catLabel(r.category)) + " · " + fmtDate(r.created_at) + " · " + (Number(r.confirmations) || 0) + " confirmations</span></span>" + badge(r.status) + "</li>").join("") + "</ul>"
       : '<div class="card"><p>You have not reported anything yet.</p><a class="btn" href="#/report">Report an issue</a></div>');
   }
 
