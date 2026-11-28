@@ -30,16 +30,18 @@ supabase/schema.sql tables, Row Level Security, grants, storage bucket, function
 supabase/02-demo-and-circles.sql  upgrade for databases created from an older schema.sql
 supabase/03-demo-data.sql         labelled demo reports, residents and Action Circles
 supabase/fix-grants.sql           table permissions for databases created from an older schema.sql
+supabase/04-qa-fixes.sql          admin moderation, photo clean-up, rate limit, safer photo URLs (run on every database)
 ```
 
 ## Setup
 1. Create a Supabase project. In **SQL Editor**, run `supabase/schema.sql`. (Already ran an older version? Run `fix-grants.sql` then `02-demo-and-circles.sql` instead.)
-2. In **Authentication > Providers > Email**, turn off "Confirm email" for the demo.
+2. In **Authentication > Providers > Email**, turn off "Confirm email" for the demo. In **Authentication > URL Configuration**, add your app URL (e.g. `https://your-site.vercel.app/app/`) to Redirect URLs so password-reset links work.
 3. Put the project URL and **anon** key in `app/config.js` (never the service_role key).
-4. Optional: run `supabase/03-demo-data.sql` to load labelled demo data. Delete it later with `delete from public.reports where is_demo; delete from public.activities where is_demo;`.
-5. Sign up in the app, then make yourself the demo admin by running the commented SQL at the bottom of `schema.sql`.
-6. Run locally: `npx serve .` (or any static server) and open `/`.
-7. Deploy: import the repo in Vercel, Framework preset "Other", no build command, output directory `.`.
+4. Run `supabase/04-qa-fixes.sql`.
+5. Optional: run `supabase/03-demo-data.sql` to load labelled demo data. Delete it later with `delete from public.reports where is_demo; delete from public.activities where is_demo;`.
+6. Sign up in the app, then make yourself the demo admin by running the commented SQL at the bottom of `schema.sql`.
+7. Run locally: `npx serve .` (or any static server) and open `/`.
+8. Deploy: import the repo in Vercel, Framework preset "Other", no build command, output directory `.`.
 
 ## How the Repeat Issue Radar works
 1. Take open reports of the same category.

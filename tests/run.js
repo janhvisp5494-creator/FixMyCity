@@ -8,7 +8,7 @@ const check = (name, cond, extra) => { if (cond) { pass++; console.log('  PASS',
   const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 1200, height: 900 } });
   const page = await ctx.newPage();
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
-  page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push('console: ' + m.text()); });
+  page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource|integrity' attribute/.test(m.text())) errors.push('console: ' + m.text()); });
   await page.route(/^https?:\/\//, (r) => r.fulfill({ status: 200, contentType: r.request().url().endsWith('.css') || r.request().url().includes('css2') ? 'text/css' : 'application/javascript', body: '' }));
   await page.route('**/app/config.js', (r) => r.fulfill({ contentType: 'application/javascript', body: 'window.FMC_CONFIG={SUPABASE_URL:"https://t.test",SUPABASE_ANON_KEY:"test-key",RADIUS_M:150,MIN_CLUSTER:3,DEFAULT_CENTER:[22.3,73.18],DEFAULT_ZOOM:13};' }));
   await page.addInitScript(fakes);
@@ -44,11 +44,16 @@ const check = (name, cond, extra) => { if (cond) { pass++; console.log('  PASS',
   check('safety note present', /Do not repair roads/.test(await page.content()));
 
   console.log('Login');
+  await go('#/login'); await page.click('#swap');
+  check('register form toggles', (await page.locator('#name').count()) === 1);
+  await go('#/map'); await go('#/login'); await page.click('#forgot');
+  check('forgot-password form shows email only', (await page.locator('#password').count()) === 0 && /Send reset link/.test(await text('#authBtn')));
+  await go('#/map');
   await go('#/login'); await page.fill('#email', 'tester@x.com'); await page.fill('#password', 'secret1'); await page.click('#authBtn'); await page.waitForTimeout(500);
   check('login succeeds and lands on map', (await page.evaluate(() => location.hash)) === '#/map');
   check('nav shows My reports and Log out', /My reports/.test(await text('#nav')) && /Log out/.test(await text('#nav')));
-  await go('#/login'); await page.click('#swap'); await page.fill('#email', 'bad'); // just ensure toggle works
-  check('register form toggles', (await page.locator('#name').count()) === 1);
+  await go('#/login');
+  check('#/login when already logged in says so instead of showing the form', /You are logged in/.test(await text('main')) && (await page.locator('#authForm').count()) === 0);
 
   console.log('Action Circles (logged in)');
   await go('#/circles'); await page.waitForSelector('[data-circle]');
@@ -102,6 +107,18 @@ const check = (name, cond, extra) => { if (cond) { pass++; console.log('  PASS',
   await go('#/issue/r2'); await page.waitForSelector('#adminStatus');
   await page.selectOption('#adminStatus', 'resolved'); await page.click('#adminSave'); await page.waitForTimeout(400);
   check('status box on issue page works and timeline shows it', /Resolved/.test(await text('.timeline')));
+
+  console.log('Logout');
+  await go('#/pulse'); await page.click('#logout'); await page.waitForTimeout(300);
+  check('logout from a non-map page shows "Log in" and lands on the map', /Log in/.test(await text('#nav')) && !/Log out/.test(await text('#nav')) && (await page.evaluate(() => location.hash)) === '#/map');
+  await go('#/login'); await page.fill('#email', 'a@x.com'); await page.fill('#password', 'secret1'); await page.click('#authBtn'); await page.waitForTimeout(400);
+  await page.click('#logout'); await page.waitForTimeout(300);
+  check('logout while already on the map shows "Log in"', /Log in/.test(await text('#nav')) && !/Log out/.test(await text('#nav')));
+  // supabase-js signOut() can hang on its cross-tab lock; the app must still log out.
+  await go('#/login'); await page.fill('#email', 'a@x.com'); await page.fill('#password', 'secret1'); await page.click('#authBtn'); await page.waitForTimeout(400);
+  await page.evaluate(() => { window.__hangSignOut = true; });
+  await page.click('#logout'); await page.waitForTimeout(5500);
+  check('logout still works when signOut() hangs (4 s timeout, then reload)', /Log in/.test(await text('#nav')) && !/Log out/.test(await text('#nav')));
 
   console.log('Landing page radar demo');
   const lp = await ctx.newPage(); lp.on('pageerror', (e) => errors.push('landing pageerror: ' + e.message));

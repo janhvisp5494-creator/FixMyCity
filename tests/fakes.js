@@ -91,7 +91,7 @@
       onAuthStateChange: (cb) => { listeners.push(cb); return { data: { subscription: { unsubscribe() {} } } }; },
       signInWithPassword: async ({ email }) => { const p = DB.profiles.find((x) => x.email === email); if (!p) return { data: {}, error: { message: 'Invalid login credentials' } }; session = { user: { id: p.id, email } }; emit('SIGNED_IN'); return { data: { session }, error: null }; },
       signUp: async ({ email, options }) => { const id = uid(); DB.profiles.push({ id, name: (options && options.data && options.data.name) || email, email, role: 'citizen' }); session = { user: { id, email } }; emit('SIGNED_IN'); return { data: { session }, error: null }; },
-      signOut: async () => { session = null; emit('SIGNED_OUT'); return { error: null }; }
+      signOut: async () => { if (window.__hangSignOut) return new Promise(() => {}); session = null; emit('SIGNED_OUT'); return { error: null }; }
     }
   }) };
 

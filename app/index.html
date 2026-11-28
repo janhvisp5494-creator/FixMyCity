@@ -5,27 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FixMyCity</title>
   <meta name="description" content="Report local issues, confirm what neighbours report, and spot problems that keep coming back.">
+  <meta name="theme-color" content="#F8F9F3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0E2A2D" media="(prefers-color-scheme: dark)">
   <link rel="icon" type="image/png" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
   <link rel="stylesheet" href="app.css">
 </head>
 <body>
+  <a class="skip" href="#view">Skip to content</a>
   <header class="top">
     <a class="brand" href="../" aria-label="FixMyCity home">
       <img src="../assets/fixmycity-icon.png" alt="" width="36" height="36">
       <span>FixMyCity</span>
     </a>
+    <button id="navToggle" class="nav-toggle" type="button" aria-controls="nav" aria-expanded="false">
+      <span aria-hidden="true">&#9776;</span> Menu
+    </button>
     <nav id="nav" aria-label="Main"></nav>
   </header>
-  <main id="view" aria-live="polite"><p class="muted pad">Loading…</p></main>
+  <main id="view" tabindex="-1" aria-live="polite"><p class="muted pad">Loading…</p></main>
   <div id="toast" role="status"></div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
   <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
