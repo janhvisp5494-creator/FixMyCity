@@ -6,7 +6,7 @@
   --font-head: "Poppins", system-ui, sans-serif; --font-body: "Inter", system-ui, sans-serif;
   color-scheme: light;
 }
-/* Dark palette: matches the landing page so "Open the app" doesn't flash from dark to light. */
+/* Dark palette: follows the system colour scheme. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0E2A2D; --surface: #143538; --surface-2: #1A4044; --fg: #F4F5EE; --soft: #AFC3C1; --line: #2A4F52;

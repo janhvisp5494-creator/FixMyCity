@@ -285,8 +285,7 @@
     if (window.FMC_LANG) window.FMC_LANG.bindSelect(); // language switching lives in app/translate.js
   }
   // Log out locally even if the server call fails (offline, expired or already-revoked
-  // session). Previously a failed signOut() left the user logged in while the toast
-  // said "Logged out", so the "Log out" button kept showing.
+  // session). A failed signOut() must not leave the user logged in while the toast says "Logged out".
   async function logout() {
     const lo = document.getElementById("logout");
     if (lo) lo.disabled = true;

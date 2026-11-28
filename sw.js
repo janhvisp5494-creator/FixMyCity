@@ -21,7 +21,7 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(
     fetch(req)
       .then((res) => {
-        // Only cache complete, same-origin responses (skip 206 partial video ranges and opaque ones).
+        // Only cache complete, same-origin responses (skip 206 partial ranges and opaque ones).
         if (res.ok && res.status === 200 && res.type === 'basic') {
           const copy = res.clone();
           caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});

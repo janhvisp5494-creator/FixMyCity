@@ -1,7 +1,5 @@
 # FixMyCity
 
-> **TODO before deploying:** replace `YOUR-DOMAIN` with the deployed URL in the `canonical`, `og:url`, `og:image` and `twitter:image` tags of `index.html` (social cards need absolute URLs).
-
 Report once. Understand together. Act as a community.
 
 FixMyCity is a civic reporting web app built for the Tutedude CityFix Buildathon (#TutedudeBuildathon, #BuildForMyCity).
