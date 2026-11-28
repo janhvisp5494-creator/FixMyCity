@@ -162,6 +162,7 @@
     if (res.error) return friendly(res.error);
     if (!res.data || !res.data.length) return isAdmin() ? MIGRATION_HINT : "This report can no longer be deleted.";
     await removePhoto(r.image_url);
+    await removePhoto(r.resolution_image_url); // admin "after" photo, if any
     return null;
   }
   const isAdmin = () => !!(profile && profile.role === "admin");
@@ -197,13 +198,31 @@
   const priorityLabel = (c) => (c.priority >= 80 ? "High" : c.priority >= 45 ? "Medium" : "Low");
   const clusterText = (c) => c.members.length + " reports · " + c.confirmations + " community confirmations · oldest " + daysAgo(c.oldest) + " days · " + priorityLabel(c) + " priority";
   // Share a report: native share sheet on phones, otherwise copy the link.
+  // Copy text: modern clipboard API first (with a timeout, since it can hang without permission or focus),
+  // then the old textarea + execCommand route.
+  async function copyText(text) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await Promise.race([navigator.clipboard.writeText(text), new Promise((_, no) => setTimeout(() => no(new Error("clipboard timeout")), 1500))]);
+        return true;
+      }
+    } catch (e) { /* fall through to the fallback */ }
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;top:0;left:0;opacity:0";
+      document.body.appendChild(ta); ta.select();
+      const ok = document.execCommand("copy");
+      ta.remove();
+      return !!ok;
+    } catch (e) { return false; }
+  }
   async function shareLink(title, url) {
     const text = "Help fix our city: " + title + " #BuildForMyCity";
     try {
       if (navigator.share) { await navigator.share({ title: "FixMyCity", text, url }); return; }
-      await navigator.clipboard.writeText(text + " " + url);
-      toast("Link copied. Paste it anywhere to share.");
-    } catch (e) { if (e && e.name !== "AbortError") toast("Could not share. Copy the address from your browser."); }
+    } catch (e) { if (e && e.name === "AbortError") return; /* otherwise fall back to copying */ }
+    if (await copyText(text + " " + url)) toast("Link copied. Paste it anywhere to share.");
+    else toast("Copy this link: " + url);
   }
   // Fill the "area" field from the pin using OpenStreetMap Nominatim (best effort, free, no key).
   // Nominatim allows at most 1 request per second: calls are queued and only the latest pending one is sent.
@@ -1277,8 +1296,8 @@
       '<div class="card stack"><h2>What is in the files</h2><ul class="small" style="margin:0;padding-left:18px"><li>Fields: id, category, status, created_at, area, latitude, longitude, confirmations.</li>' +
       "<li>Left out: demo data, reporter identity, titles, descriptions and photos.</li><li>Coordinates are rounded to 4 decimals (roughly 11 metres).</li></ul></div>";
     document.getElementById("copyData").onclick = async () => {
-      try { await navigator.clipboard.writeText(pageUrl); toast("Link copied. Anyone can open it to download the data."); }
-      catch (e) { toast("Could not copy. Copy the address from your browser."); }
+      if (await copyText(pageUrl)) toast("Link copied. Anyone can open it to download the data.");
+      else toast("Copy this link: " + pageUrl);
     };
   }
 
