@@ -1,0 +1,192 @@
+<div class="home">
+    <div class="hero" id="home-top">
+      <div>
+        <p class="eyebrow">Civic reporting, with a memory</p>
+        <h1>Report once. <em>Understand together.</em> Act as a community.</h1>
+        <p class="lead">Residents often report the same pothole, the same garbage pile, the same dead streetlight, and never learn whether anyone else did. FixMyCity connects those reports so a neighbourhood can see what keeps coming back.</p>
+        <div class="cta-row">
+          <a class="btn" href="#/report">Report an issue</a>
+          <button type="button" class="btn ghost" data-scroll="home-how">See how it works</button>
+          <button type="button" class="btn ghost" data-tour>Take the tour</button>
+        </div>
+        <p class="tagline">Your neighbourhood. Your voice. Your impact.</p>
+      </div>
+
+      <div class="radar" id="homeRadar">
+        <div class="radar-head">
+          <strong>Repeat Issue Radar</strong>
+          <span class="tag tag-warn" id="homeVerdict">Possible recurring issue</span>
+        </div>
+        <div class="radar-map">
+          <svg id="homeMap" viewBox="0 0 400 400" role="img" aria-label="Example map showing pothole reports inside and outside a search radius"></svg>
+        </div>
+        <div class="radar-ctrl">
+          <label for="homeRadius"><span>Search radius</span><span id="homeRadiusOut">150 m</span></label>
+          <input id="homeRadius" type="range" min="50" max="250" step="10" value="150" aria-describedby="homeRadarNote">
+        </div>
+        <div class="stats" aria-live="polite">
+          <div class="stat"><b id="homeReports">5</b><span>reports nearby</span></div>
+          <div class="stat"><b id="homeConfirm">4</b><span>community confirmations</span></div>
+          <div class="stat"><b id="homeOldest">12 d</b><span>oldest report</span></div>
+        </div>
+        <div class="legend" style="padding-top:12px">
+          <span><i style="background:var(--primary)"></i>Pothole</span>
+          <span><i style="background:var(--secondary)"></i>Garbage (different category, ignored)</span>
+        </div>
+        <p class="radar-note" id="homeRadarNote"><b>Example data.</b> These pins are made up to show the idea. The radar only compares reports in the same category and suggests a cluster for review. It never merges reports on its own.</p>
+      </div>
+    </div>
+
+    <figure class="hero-art">
+      <img src="assets/hero-community.webp" width="1672" height="941" fetchpriority="high" decoding="async" alt="Illustration of neighbours on a city street reporting a pothole and broken streetlight together.">
+    </figure>
+
+    <section class="impact" id="homeImpact" aria-labelledby="impact-h">
+      <h2 id="impact-h" class="sr-only">Live impact</h2>
+      <ul class="impact-row">
+        <li><b data-impact="reports">&ndash;</b><span>reports</span></li>
+        <li><b data-impact="resolved">&ndash;</b><span>resolved</span></li>
+        <li><b data-impact="neighbours">&ndash;</b><span>neighbours</span></li>
+        <li><b data-impact="days">&ndash;</b><span>avg days to fix</span></li>
+      </ul>
+      <p class="small muted" id="impactNote" aria-live="polite">Loading live numbers…</p>
+    </section>
+
+    <section id="home-report-types" class="types" aria-labelledby="types-h" style="padding-top:24px">
+      <p class="eyebrow">What you can report</p>
+      <h2 id="types-h" style="margin-top:12px">Six kinds of everyday problems.</h2>
+      <ul class="type-grid">
+        <li><a class="type-card" href="#/report">
+          <img src="assets/issues/pothole.webp" width="800" height="800" loading="lazy" decoding="async" alt="Illustration of a tree-lined street with a cracked pothole filled with muddy water, an orange traffic cone and a scooter passing by.">
+          <span class="type-name" data-cat-name="pothole">Pothole</span>
+          <span class="type-ex">Deep hole on the road near the bus stop.</span>
+        </a></li>
+        <li><a class="type-card" href="#/report">
+          <img src="assets/issues/garbage.webp" width="800" height="800" loading="lazy" decoding="async" alt="Illustration of an overflowing green dustbin with garbage bags and litter on the pavement, a cow nearby and a broom leaning on the wall.">
+          <span class="type-name" data-cat-name="garbage">Garbage</span>
+          <span class="type-ex">Overflowing bin that has not been cleared for days.</span>
+        </a></li>
+        <li><a class="type-card" href="#/report">
+          <img src="assets/issues/streetlight.webp" width="800" height="800" loading="lazy" decoding="async" alt="Illustration of a residential street at dusk where one rusty street lamp is dead while a resident lights the way with a phone torch.">
+          <span class="type-name" data-cat-name="streetlight">Streetlight</span>
+          <span class="type-ex">Lamp that stays dark all night on a busy lane.</span>
+        </a></li>
+        <li><a class="type-card" href="#/report">
+          <img src="assets/issues/drainage.webp" width="800" height="800" loading="lazy" decoding="async" alt="Illustration of a roadside drain clogged with plastic waste and dirty water spreading onto the road near an open manhole.">
+          <span class="type-name" data-cat-name="drainage">Drainage</span>
+          <span class="type-ex">Blocked drain with water backing up.</span>
+        </a></li>
+        <li><a class="type-card" href="#/report">
+          <img src="assets/issues/water-logging.webp" width="800" height="800" loading="lazy" decoding="async" alt="Illustration of a street flooded with brown rainwater, an auto-rickshaw and a bus wading through, and people under umbrellas on the pavement.">
+          <span class="type-name" data-cat-name="water_logging">Water logging</span>
+          <span class="type-ex">Street under water after every heavy rain.</span>
+        </a></li>
+        <li><a class="type-card" href="#/report">
+          <img src="assets/issues/other.webp" width="800" height="800" loading="lazy" decoding="async" alt="Illustration of a resident photographing a broken bench, a leaning signboard and an uncovered manhole on a pavement.">
+          <span class="type-name" data-cat-name="other">Other</span>
+          <span class="type-ex">Anything else that affects your street.</span>
+        </a></li>
+      </ul>
+    </section>
+
+  <section class="problem" aria-labelledby="problem-h">
+    <div class="wrap problem-grid">
+      <div>
+        <p class="eyebrow">The problem</p>
+        <h2 id="problem-h" style="margin-top:12px">Five complaints about one pothole look like five separate problems.</h2>
+      </div>
+      <ul>
+        <li><b>Duplicate reports.</b><span>People file the same issue again and again because there is no shared view of what is already reported.</span></li>
+        <li><b>No way to follow up.</b><span>A report goes in and the resident rarely finds out what happened next.</span></li>
+        <li><b>Patterns stay hidden.</b><span>Streets with the same problem every month are hard to spot when each report sits on its own.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="home-how" aria-labelledby="how-h">
+    <p class="eyebrow">How it works</p>
+    <h2 id="how-h" style="margin-top:12px">From one photo to a neighbourhood pattern.</h2>
+    <div class="steps">
+      <div class="step"><h3>Report it</h3><p>Add a photo, pick a category and drop a pin on the map. Your report gets its own ID.</p></div>
+      <div class="step"><h3>Neighbours confirm</h3><p>Others nearby tap whether the issue still exists, has got worse, or looks fixed.</p></div>
+      <div class="step"><h3>The radar connects reports</h3><p>Reports of the same type within a set distance are grouped into a suggested cluster.</p></div>
+      <div class="step"><h3>Track progress</h3><p>Every status change is recorded, so anyone can see where a report stands.</p></div>
+    </div>
+  </section>
+
+  <section id="home-features" aria-labelledby="feat-h" style="padding-top:24px">
+    <p class="eyebrow">Features</p>
+    <h2 id="feat-h" style="margin-top:12px">More than a complaint form.</h2>
+    <div class="features">
+      <div class="feature main"><h3>Repeat Issue Radar <span class="tag tag-warn">Headline feature</span></h3><p>Simple, explainable matching by category and distance. You can see why reports were grouped, and the radius is adjustable.</p></div>
+      <div class="feature"><h3>Smart issue reporting</h3><p>Title, category, description, photo and map location in one short form. Each report is trackable from the moment it is filed.</p></div>
+      <div class="feature"><h3>Community verification</h3><p>One vote per resident per report. Community confirmation is kept separate from any official check.</p></div>
+      <div class="feature"><h3>Neighbourhood Pulse</h3><p>Open and resolved counts, common categories, repeat hotspots and weekly trends for your area.</p></div>
+      <div class="feature"><h3>Transparent status</h3><p>A clear timeline from submitted to resolved, with a history of every change.</p></div>
+      <div class="feature"><h3>Action Circles</h3><p>Voluntary clean-ups, tree planting and awareness drives that residents can start and join. Never hazardous repairs.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="status-h" style="padding-top:24px">
+    <p class="eyebrow">Report status</p>
+    <h2 id="status-h" style="margin-top:12px">Every report has a visible path.</h2>
+    <div class="flow" role="list" aria-label="Report status stages">
+      <span class="chip done" role="listitem">Submitted</span><span class="arrow" aria-hidden="true">→</span>
+      <span class="chip" role="listitem">Community confirmed</span><span class="arrow" aria-hidden="true">→</span>
+      <span class="chip" role="listitem">Acknowledged</span><span class="arrow" aria-hidden="true">→</span>
+      <span class="chip" role="listitem">In progress</span><span class="arrow" aria-hidden="true">→</span>
+      <span class="chip" role="listitem">Resolved</span>
+    </div>
+    <p class="callout"><b>A note on trust.</b> “Community confirmed” means neighbours agree the issue exists. It is not an official verification. The administrator view in this prototype is a demonstration role and does not imply a partnership with any city authority.</p>
+  </section>
+
+  <section id="home-pulse" aria-labelledby="pulse-h">
+    <div class="pulse-row">
+      <div>
+        <p class="eyebrow">Neighbourhood Pulse</p>
+        <h2 id="pulse-h" style="margin-top:12px">See what your street keeps running into.</h2>
+        <p class="lead" style="margin-top:16px">A local dashboard shows which problems are most common, how many are still open, and where the same issue returns. It is built from the reports residents submit.</p>
+      </div>
+      <div class="panel" aria-label="Example Neighbourhood Pulse dashboard">
+        <h3>This week in an example ward <span class="tag">Example data</span></h3>
+        <div class="bars">
+          <div class="bar-row"><span>Potholes</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><b>18</b></div>
+          <div class="bar-row"><span>Garbage</span><div class="bar-track"><div class="bar-fill" style="width:67%"></div></div><b>12</b></div>
+          <div class="bar-row"><span>Streetlights</span><div class="bar-track"><div class="bar-fill" style="width:44%"></div></div><b>8</b></div>
+          <div class="bar-row"><span>Drainage</span><div class="bar-track"><div class="bar-fill" style="width:28%"></div></div><b>5</b></div>
+        </div>
+        <div class="pulse-mini">
+          <div class="stat"><b>43</b><span>reports</span></div>
+          <div class="stat"><b>29</b><span>still open</span></div>
+          <div class="stat"><b>3</b><span>repeat hotspots</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="trust-h" style="padding-top:24px">
+    <p class="eyebrow">Built with care</p>
+    <h2 id="trust-h" style="margin-top:12px">Privacy and honesty by default.</h2>
+    <div class="trust">
+      <div><h3>People stay out of the frame</h3><p>Photos should show the problem, not faces or vehicle number plates. Reporters are reminded of this before every upload, because photos are shown publicly.</p></div>
+      <div><h3>Demo data is labelled</h3><p>Anything that is an example, including the numbers on this page, says so. Nothing here is official city data.</p></div>
+      <div><h3>Independent of government</h3><p>FixMyCity is a community project. It does not use official logos or claim any government affiliation.</p></div>
+    </div>
+  </section>
+
+  <section id="get-started" aria-labelledby="cta-h" style="padding-top:24px">
+    <div class="cta-band">
+      <h2 id="cta-h">Spot a problem? Put it on the map.</h2>
+      <p>Take a photo, pin the spot, and let your neighbours help show how often it happens.</p>
+      <a class="btn" href="#/report">Report an issue</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="row">
+      <button type="button" class="linkbtn" data-scroll="home-top">Back to top</button>
+      <span>#TutedudeBuildathon · #BuildForMyCity</span>
+    </div>
+    <small>FixMyCity is a buildathon prototype. It is not a deployed municipal service, has no formal partnership with any government body, and the statistics shown on this page are example values, not real city data.</small>
+  </footer>
+</div>

@@ -1,9 +1,9 @@
--- FixMyCity update 4: fixes from the QA report (docs/QA-REPORT.md).
+-- FixMyCity update 4: admin moderation, photo clean-up, rate limit and safer photo URLs.
 -- Run ONCE in Supabase > SQL Editor, after schema.sql (and 02-demo-and-circles.sql if you ran an older schema).
 -- Safe to re-run: every object is dropped first if it already exists.
 
 -- ============================================================
--- 1. Moderation: the admin can delete any report (spam, test entries).
+-- 1. Moderation: the admin can delete any report (for example spam).
 --    Citizens keep their existing rule: own report, only while "submitted".
 -- ============================================================
 drop policy if exists "reports delete admin" on public.reports;

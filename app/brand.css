@@ -1,0 +1,47 @@
+/* Brand kit page (#/brand). Everything is scoped under .brand-kit and uses the app.css variables. */
+.brand-kit { padding: 0 0 24px; }
+.brand-kit h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; }
+.brand-kit h2 { font-size: 1.7rem; font-weight: 600; }
+.brand-kit h3 { font-size: 1.1rem; font-weight: 600; }
+.brand-kit p { margin: 0 0 1em; }
+.brand-kit .hero { padding: 40px 0 32px; }
+.brand-kit .eyebrow { font: 600 12px var(--font-head); letter-spacing: .12em; text-transform: uppercase; color: var(--primary-text); }
+.brand-kit section { padding: 44px 0; border-top: 1px solid var(--line); }
+.brand-kit .grid { display: grid; gap: 16px; }
+.brand-kit .g2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.brand-kit .g3 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.brand-kit .card { border-radius: 14px; }
+.brand-kit .stage { display: flex; align-items: center; justify-content: center; border-radius: 10px; padding: 28px; min-height: 150px; }
+.brand-kit .stage.light { background: #fff; border: 1px solid var(--line); }
+.brand-kit .stage.dark { background: #0E2A2D; }
+.brand-kit .stage.tint { background: var(--tint); }
+.brand-kit .stage img { max-width: 100%; display: block; }
+.brand-kit .clear { position: relative; padding: 36px; border: 1.5px dashed var(--primary); background: #fff; display: inline-block; }
+.brand-kit .clear img { height: 56px; display: block; outline: 1px solid rgba(197, 99, 60, .35); }
+.brand-kit .clear span { position: absolute; font: 600 11px var(--font-head); color: #A84E2C; }
+.brand-kit .clear .t { top: 10px; left: 50%; transform: translateX(-50%); }
+.brand-kit .clear .b { bottom: 10px; left: 50%; transform: translateX(-50%); }
+.brand-kit .clear .l { left: 10px; top: 50%; transform: translateY(-50%); }
+.brand-kit .clear .r { right: 10px; top: 50%; transform: translateY(-50%); }
+.brand-kit .dont { border-color: var(--danger); }
+.brand-kit .dont .x { color: var(--danger); font-weight: 600; font-size: 14px; margin: 12px 0 0; }
+.brand-kit .swatch { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); }
+.brand-kit .swatch .c { height: 96px; display: flex; align-items: flex-end; padding: 10px; font: 600 13px var(--font-head); }
+.brand-kit .swatch .m { padding: 12px 14px; font-size: 14px; }
+.brand-kit .swatch .m b { display: block; font-family: var(--font-head); }
+.brand-kit code, .brand-kit .hex { font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+.brand-kit .sample-h { font-family: var(--font-head); font-weight: 700; font-size: 2.4rem; line-height: 1.15; }
+.brand-kit .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; vertical-align: -1px; }
+.brand-kit .pill { display: inline-block; padding: 3px 12px; border-radius: 99px; font-size: 13px; font-weight: 600; color: #fff; }
+.brand-kit table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.brand-kit th, .brand-kit td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.brand-kit th { font-family: var(--font-head); font-weight: 600; }
+.brand-kit .post { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; white-space: pre-wrap; font-size: 15px; }
+.brand-kit .post small { display: block; margin-top: 10px; color: var(--primary-text); font-weight: 600; }
+.brand-kit .yes li::marker { color: var(--secondary); }
+.brand-kit .no li::marker { color: var(--danger); }
+.brand-kit ul { padding-left: 20px; margin: 0 0 1em; }
+
+.brand-kit .swatch.illus { margin: 0; }
+.brand-kit .swatch.illus img { display: block; width: 100%; height: auto; background: var(--surface-2); }
+.brand-kit .swatch.illus code { display: block; font-size: 12px; margin-top: 4px; overflow-wrap: anywhere; }
